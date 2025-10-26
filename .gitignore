@@ -1,0 +1,30 @@
+# Vagrant
+.vagrant/
+*.box
+
+# Ansible
+*.retry
+.ansible/
+/tmp/ansible_facts
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

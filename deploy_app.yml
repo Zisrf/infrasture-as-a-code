@@ -2,11 +2,6 @@
 - name: Clone Django repository and deploy application
   hosts: app
   become: yes
-  vars:
-    repo_url: https://github.com/mdn/django-locallibrary-tutorial
-    repo_dest: /opt/django-locallibrary-tutorial
-    docker_image: timurbabs/django
-
   tasks:
     - name: Install git
       apt:
@@ -16,8 +11,8 @@
 
     - name: Clone Django repository
       git:
-        repo: "{{ repo_url }}"
-        dest: "{{ repo_dest }}"
+        repo: "{{ django_repo }}"
+        dest: "{{ django_dest }}"
         clone: yes
         update: yes
       register: git_clone
@@ -34,12 +29,12 @@
         state: started
         restart_policy: always
         ports:
-          - "8000:8000"
+          - "{{ app_port }}:8000"
         volumes:
-          - "{{ repo_dest }}:/app"
+          - "{{ django_dest }}:/app"
       register: container_result
 
     - name: Display container status
       debug:
-        msg: "Django application is running on port 8000"
+        msg: "Django application is running on port {{ app_port }}"
       when: container_result is succeeded

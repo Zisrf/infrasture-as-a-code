@@ -1,0 +1,37 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  # Use Ubuntu 20.04 as base box
+  config.vm.box = "ubuntu/focal64"
+
+  # Configure app1 VM
+  config.vm.define "app1" do |app1|
+    app1.vm.hostname = "app1"
+    app1.vm.network "private_network", ip: "192.168.56.10"
+    
+    app1.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 1
+      vb.name = "app1"
+    end
+  end
+
+  # Configure db1 VM
+  config.vm.define "db1" do |db1|
+    db1.vm.hostname = "db1"
+    db1.vm.network "private_network", ip: "192.168.56.11"
+    
+    db1.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 1
+      vb.name = "db1"
+    end
+  end
+
+  # Common provisioning for all VMs
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get update
+    apt-get install -y python3 python3-pip
+  SHELL
+end
