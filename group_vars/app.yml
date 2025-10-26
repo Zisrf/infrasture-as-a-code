@@ -1,0 +1,6 @@
+---
+# Variables for app group
+django_repo: https://github.com/mdn/django-locallibrary-tutorial
+django_dest: /opt/django-locallibrary-tutorial
+docker_image: timurbabs/django
+app_port: 8000
