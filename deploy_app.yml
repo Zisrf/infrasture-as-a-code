@@ -1,0 +1,43 @@
+---
+- name: Deploy Django application on app nodes
+  hosts: app
+  become: yes
+  vars:
+    docker_image: timurbabs/django
+
+  tasks:
+    - name: Pull Docker image
+      docker_image:
+        name: "{{ docker_image }}"
+        source: pull
+
+    - name: Run Django application container
+      docker_container:
+        name: django_app
+        image: "{{ docker_image }}"
+        state: started
+        restart_policy: always
+        ports:
+          - "8000:8000"
+        env:
+          DEBUG: "True"
+          SECRET_KEY: "lab-ansible-success-key-2024"
+          ALLOWED_HOSTS: "*"
+        command: "gunicorn locallibrary.wsgi:application --bind 0.0.0.0:8000"
+        detach: yes
+
+    - name: Wait for application to start
+      wait_for:
+        port: 8000
+        host: '0.0.0.0'
+        delay: 30
+        timeout: 120
+
+    - name: Verify container is running (simple version)
+      shell: docker ps --filter name=django_app --quiet
+      register: container_id
+      changed_when: false
+
+    - name: Display container status
+      debug:
+        msg: "Container ID: {{ container_id.stdout }}"

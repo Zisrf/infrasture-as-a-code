@@ -1,0 +1,4 @@
+---
+app_name: "django-locallibrary"
+app_port: 8000
+deploy_user: "vagrant"
