@@ -1,0 +1,5 @@
+---
+- src: https://github.com/Zisrf/infrasture-as-a-code.git
+  scm: git
+  version: main
+  name: docker

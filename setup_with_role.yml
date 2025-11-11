@@ -1,0 +1,5 @@
+---
+- name: Install Docker using custom role
+  hosts: all
+  roles:
+    - docker
