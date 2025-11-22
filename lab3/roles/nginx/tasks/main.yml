@@ -1,0 +1,51 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+
+- name: Ensure Nginx is started and enabled
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Remove default Nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Template site configuration
+  template:
+    src: site.conf.j2
+    dest: /etc/nginx/sites-available/django_app
+    backup: yes
+  notify: restart nginx
+
+- name: Enable site configuration
+  file:
+    src: /etc/nginx/sites-available/django_app
+    dest: /etc/nginx/sites-enabled/django_app
+    state: link
+  notify: restart nginx
+
+- name: Create static files directory
+  file:
+    path: "{{ static_files_path }}"
+    state: directory
+    mode: '0755'
+    owner: www-data
+    group: www-data
+
+- name: Create media files directory
+  file:
+    path: "{{ media_files_path }}"
+    state: directory
+    mode: '0755'
+    owner: www-data
+    group: www-data

@@ -1,0 +1,12 @@
+---
+- name: Configure web servers with Nginx
+  hosts: web
+  become: yes
+  roles:
+    - nginx
+
+- name: Configure app servers with Docker and Django
+  hosts: app
+  become: yes
+  roles:
+    - docker

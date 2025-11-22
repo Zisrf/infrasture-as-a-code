@@ -1,0 +1,27 @@
+---
+- name: Install OpenVPN and dependencies
+  apt:
+    name:
+      - openvpn
+      - easy-rsa
+      - openssl
+    state: present
+
+- name: Create OpenVPN directory
+  file:
+    path: /etc/openvpn
+    state: directory
+    mode: '0755'
+
+- name: Copy server configuration template
+  template:
+    src: server.conf.j2
+    dest: /etc/openvpn/server.conf
+    mode: '0644'
+  notify: restart openvpn
+
+- name: Ensure OpenVPN service is enabled and started
+  systemd:
+    name: openvpn@server
+    state: started
+    enabled: yes

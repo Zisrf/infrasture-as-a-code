@@ -1,0 +1,30 @@
+---
+# PostgreSQL version
+postgresql_version: "14"
+
+# Cluster configuration
+postgresql_cluster_name: "main"
+postgresql_data_directory: "/var/lib/postgresql/{{ postgresql_version }}/{{ postgresql_cluster_name }}"
+
+# Network configuration
+postgresql_port: 5432
+postgresql_listen_addresses: ['localhost']
+
+# Resource settings
+postgresql_max_connections: 100
+postgresql_shared_buffers: "128MB"
+
+# Replication settings
+postgresql_replication: false
+postgresql_role: "master"  # or "replica"
+postgresql_replication_user: "replicator"
+postgresql_replication_password: "replication_pass123"
+postgresql_wal_level: "replica"
+postgresql_max_wal_senders: 10
+postgresql_wal_keep_size: "1GB"
+
+# Authentication
+postgresql_pg_hba_entries:
+  - { type: local, database: all, user: postgres, method: peer }
+  - { type: local, database: all, user: all, method: peer }
+  - { type: host, database: all, user: all, address: 127.0.0.1/32, method: md5 }

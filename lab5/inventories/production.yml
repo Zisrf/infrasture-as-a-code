@@ -1,0 +1,25 @@
+---
+all:
+  children:
+    app:
+      hosts:
+        app:
+          ansible_host: 192.168.56.20
+          ansible_user: vagrant
+          ansible_ssh_private_key_file: /home/doul_sy/.ssh/vagrant_keys_lab5/app_key
+
+    postgresql_servers:
+      hosts:
+        db:
+          ansible_host: 192.168.56.21
+          ansible_user: vagrant
+          ansible_ssh_private_key_file: /home/doul_sy/.ssh/vagrant_keys_lab5/db_key
+          postgresql_role: master
+          postgresql_replication: true
+
+    postgresql_master:
+      hosts:
+        db:
+
+    postgresql_replicas:
+      hosts: {}

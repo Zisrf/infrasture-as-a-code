@@ -1,0 +1,26 @@
+---
+- name: Ensure replication slot exists
+  community.postgresql.postgresql_replication_slot:
+    name: "replication_slot_1"
+    state: present
+    slot_type: physical
+    login_user: postgres
+    login_password: "{{ postgresql_admin_password | default('') }}"
+    port: "{{ postgresql_port }}"
+
+- name: Create base backup for replication setup
+  community.postgresql.postgresql_db:
+    name: _replication_setup
+    state: absent
+    login_user: postgres
+    login_password: "{{ postgresql_admin_password | default('') }}"
+    port: "{{ postgresql_port }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Display replication information
+  debug:
+    msg: |
+      Master node configured for replication
+      Replication user: {{ postgresql_replication_user }}
+      Listen addresses: {{ postgresql_listen_addresses | join(', ') }}

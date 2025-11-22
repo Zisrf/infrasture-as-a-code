@@ -1,0 +1,61 @@
+# PostgreSQL Configuration File
+# Ansible Managed
+
+#------------------------------------------------------------------------------
+# FILE LOCATIONS
+#------------------------------------------------------------------------------
+
+data_directory = '{{ postgresql_custom_data_directory | default(postgresql_data_directory) }}'
+
+#------------------------------------------------------------------------------
+# CONNECTIONS AND AUTHENTICATION
+#------------------------------------------------------------------------------
+
+listen_addresses = '{{ postgresql_listen_addresses | join(",") }}'
+port = {{ postgresql_port }}
+max_connections = {{ postgresql_max_connections | default(100) }}
+
+#------------------------------------------------------------------------------
+# RESOURCE USAGE
+#------------------------------------------------------------------------------
+
+shared_buffers = {{ postgresql_shared_buffers | default("128MB") }}
+work_mem = {{ postgresql_work_mem | default("4MB") }}
+maintenance_work_mem = {{ postgresql_maintenance_work_mem | default("64MB") }}
+
+#------------------------------------------------------------------------------
+# WRITE AHEAD LOG
+#------------------------------------------------------------------------------
+
+wal_level = {{ postgresql_wal_level | default("replica") }}
+synchronous_commit = {{ postgresql_synchronous_commit | default("on") }}
+
+#------------------------------------------------------------------------------
+# REPLICATION
+#------------------------------------------------------------------------------
+
+{% if postgresql_replication | default(false) %}
+max_wal_senders = {{ postgresql_max_wal_senders | default(10) }}
+wal_keep_size = {{ postgresql_wal_keep_size | default("1GB") }}
+hot_standby = {{ postgresql_hot_standby | default("on") }}
+
+{% if postgresql_role == "master" %}
+# Master specific settings
+synchronous_standby_names = '{{ postgresql_synchronous_standby_names | default("") }}'
+{% endif %}
+
+{% if postgresql_role == "replica" %}
+# Replica specific settings
+hot_standby_feedback = {{ postgresql_hot_standby_feedback | default("on") }}
+{% endif %}
+{% endif %}
+
+#------------------------------------------------------------------------------
+# LOGGING
+#------------------------------------------------------------------------------
+
+logging_collector = {{ postgresql_logging_collector | default("on") }}
+log_directory = '{{ postgresql_log_directory | default("pg_log") }}'
+log_filename = '{{ postgresql_log_filename | default("postgresql-%a.log") }}'
+log_rotation_age = {{ postgresql_log_rotation_age | default("1d") }}
+log_rotation_size = {{ postgresql_log_rotation_size | default("0") }}

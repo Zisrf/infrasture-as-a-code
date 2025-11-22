@@ -1,0 +1,26 @@
+---
+- name: Deploy PostgreSQL database server
+  hosts: postgresql_servers
+  become: yes
+  roles:
+    - postgresql
+
+- name: Deploy application
+  hosts: app
+  become: yes
+  tasks:
+    - name: Install application dependencies
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - postgresql-client
+        state: present
+
+    - name: Display connection information
+      debug:
+        msg: |
+          Application server ready
+          Database available at: 192.168.56.21:5432
+          Database name: app_db
+          Database user: app_user

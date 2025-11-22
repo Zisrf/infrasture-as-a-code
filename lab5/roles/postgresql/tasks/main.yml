@@ -1,0 +1,67 @@
+---
+- name: Include OS-specific variables
+  include_vars: "{{ ansible_os_family | lower }}.yml"
+
+- name: Install PostgreSQL repository key
+  apt_key:
+    url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
+    state: present
+
+- name: Add PostgreSQL repository
+  apt_repository:
+    repo: "deb http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+    state: present
+    filename: postgresql
+
+- name: Update package cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install PostgreSQL server and client
+  apt:
+    name:
+      - "postgresql-{{ postgresql_version }}"
+      - "postgresql-client-{{ postgresql_version }}"
+      - "postgresql-contrib-{{ postgresql_version }}"
+      - python3-psycopg2
+    state: present
+
+- name: Check if database cluster exists
+  stat:
+    path: "{{ postgresql_data_directory }}/PG_VERSION"
+  register: db_cluster_exists
+
+- name: Configure postgresql.conf
+  template:
+    src: postgresql.conf.j2
+    dest: "{{ postgresql_data_directory }}/postgresql.conf"
+    owner: postgres
+    group: postgres
+    mode: '0644'
+  notify: restart postgresql
+
+- name: Configure pg_hba.conf
+  template:
+    src: pg_hba.conf.j2
+    dest: "{{ postgresql_data_directory }}/pg_hba.conf"
+    owner: postgres
+    group: postgres
+    mode: '0640'
+  notify: reload postgresql
+
+- name: Ensure PostgreSQL service is started and enabled
+  systemd:
+    name: "postgresql"
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Wait for PostgreSQL to start
+  wait_for:
+    port: "{{ postgresql_port }}"
+    delay: 5
+    timeout: 30
+
+- name: Setup databases and users
+  include_tasks: database_setup.yml

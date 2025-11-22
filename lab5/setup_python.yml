@@ -1,0 +1,25 @@
+---
+- name: Install Python 3.9 on Ubuntu 20.04
+  hosts: all
+  become: yes
+  tasks:
+    - name: Add deadsnakes PPA for Python 3.9
+      apt_repository:
+        repo: ppa:deadsnakes/ppa
+        state: present
+
+    - name: Update package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install Python 3.9
+      apt:
+        name:
+          - python3.9
+          - python3.9-distutils
+        state: present
+
+    - name: Set Python 3.9 as default for Ansible
+      set_fact:
+        ansible_python_interpreter: /usr/bin/python3.9

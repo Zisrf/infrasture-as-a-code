@@ -1,0 +1,30 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.provider "virtualbox" do |vb|
+    vb.gui = false
+  end
+
+  # Machine pour l'application
+  config.vm.define "app" do |app|
+    app.vm.box = "ubuntu/focal64"
+    app.vm.hostname = "app"
+    app.vm.network "private_network", ip: "192.168.56.10"
+    app.vm.provider "virtualbox" do |vb|
+      vb.memory = "2048"
+      vb.cpus = 2
+    end
+  end
+
+  # Machine pour le monitoring
+  config.vm.define "monitoring" do |mon|
+    mon.vm.box = "ubuntu/focal64"
+    mon.vm.hostname = "monitoring"
+    mon.vm.network "private_network", ip: "192.168.56.11"
+    mon.vm.provider "virtualbox" do |vb|
+      vb.memory = "3072"
+      vb.cpus = 2
+    end
+  end
+end

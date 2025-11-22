@@ -1,0 +1,24 @@
+---
+- name: Install Grafana from Ubuntu repository
+  apt:
+    name: grafana
+    state: present
+    update_cache: yes
+
+- name: Copy Grafana configuration
+  template:
+    src: grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+  notify: restart grafana
+
+- name: Start and enable Grafana
+  systemd:
+    name: grafana-server
+    state: started
+    enabled: yes
+
+- name: Wait for Grafana to start
+  wait_for:
+    port: 3000
+    delay: 10
+    state: started

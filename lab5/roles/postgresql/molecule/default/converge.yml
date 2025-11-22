@@ -1,0 +1,19 @@
+---
+- name: Converge
+  hosts: all
+  become: yes
+  gather_facts: yes
+  
+  vars:
+    postgresql_version: "14"
+    postgresql_databases:
+      - name: test_db
+        owner: test_user
+    postgresql_users:
+      - name: test_user
+        password: "test_pass123"
+
+  tasks:
+    - name: "Include postgresql role"
+      include_role:
+        name: "postgresql"
