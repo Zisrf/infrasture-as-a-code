@@ -1,11 +1,11 @@
-port 1194
-proto udp
+port {{ openvpn_port }}
+proto {{ openvpn_protocol }}
 dev tun
 ca /etc/openvpn/pki/ca.crt
 cert /etc/openvpn/pki/issued/server.crt
 key /etc/openvpn/pki/private/server.key
 dh /etc/openvpn/pki/dh.pem
-server 10.8.0.0 255.255.255.0
+server {{ openvpn_network }} {{ openvpn_netmask }}
 push "redirect-gateway def1 bypass-dhcp"
 push "dhcp-option DNS 8.8.8.8"
 keepalive 10 120

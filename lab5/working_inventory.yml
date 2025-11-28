@@ -1,0 +1,21 @@
+all:
+  children:
+    app:
+      hosts:
+        app:
+          ansible_host: 127.0.0.1
+          ansible_port: 2201
+          ansible_user: vagrant
+          ansible_ssh_pass: vagrant
+          ansible_become_pass: vagrant
+
+    postgresql_servers:
+      hosts:
+        db:
+          ansible_host: 127.0.0.1
+          ansible_port: 2202
+          ansible_user: vagrant
+          ansible_ssh_pass: vagrant
+          ansible_become_pass: vagrant
+          postgresql_role: master
+          postgresql_replication: true

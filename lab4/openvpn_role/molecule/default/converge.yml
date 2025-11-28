@@ -1,0 +1,29 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    openvpn_server_host: "{{ ansible_host }}"
+    ovpn_output_path: /tmp
+    openvpn_port: 1194
+    openvpn_protocol: udp
+    openvpn_network: 10.8.0.0
+    openvpn_netmask: 255.255.255.0
+    easyrsa_country: "US"
+    easyrsa_province: "California"
+    easyrsa_city: "San Francisco"
+    easyrsa_org: "OpenVPN"
+    easyrsa_email: "admin@example.com"
+    easyrsa_ou: "IT"
+    easyrsa_key_size: 2048
+    easyrsa_algo: rsa
+    easyrsa_ca_expire: 3650
+    easyrsa_cert_expire: 365
+  tasks:
+    - name: Import OpenVPN role tasks
+      import_tasks: ../../tasks/main.yml
+      
+  handlers:
+    - name: restart openvpn
+      systemd:
+        name: openvpn@server
+        state: restarted

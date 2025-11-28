@@ -1,18 +1,5 @@
 [web]
-192.168.56.10 ansible_user=vagrant ansible_ssh_private_key_file=/home/doul_sy/.ssh/vagrant_keys/web_key
+192.168.56.10 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/web/virtualbox/private_key
 
 [app]
-192.168.56.11 ansible_user=vagrant ansible_ssh_private_key_file=/home/doul_sy/.ssh/vagrant_keys/app_key
-
-[web:vars]
-static_files_path=/var/www/static
-media_files_path=/var/www/media
-django_host=192.168.56.11
-django_port=8000
-server_name=localhost
-
-[app:vars]
-django_image=timurbabs/django
-django_port=8000
-static_volume=static
-media_volume=media
+192.168.56.11 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/app/virtualbox/private_key

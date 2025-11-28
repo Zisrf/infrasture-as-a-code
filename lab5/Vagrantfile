@@ -7,6 +7,14 @@ Vagrant.configure("2") do |config|
       vb.memory = "1024"
       vb.cpus = 1
     end
+    
+    # Provisionnement Ansible pour app
+    app.vm.provision "ansible" do |ansible|
+      ansible.playbook = "deploy_postgresql.yml"
+      ansible.groups = {
+        "app" => ["app"]
+      }
+    end
   end
 
   config.vm.define "db" do |db|
@@ -16,6 +24,19 @@ Vagrant.configure("2") do |config|
     db.vm.provider "virtualbox" do |vb|
       vb.memory = "2048"
       vb.cpus = 2
+    end
+    
+    # Provisionnement Ansible pour db
+    db.vm.provision "ansible" do |ansible|
+      ansible.playbook = "deploy_postgresql.yml"
+      ansible.groups = {
+        "postgresql_servers" => ["db"],
+        "postgresql_master" => ["db"]
+      }
+      ansible.extra_vars = {
+        postgresql_role: "master",
+        postgresql_replication: true
+      }
     end
   end
 end

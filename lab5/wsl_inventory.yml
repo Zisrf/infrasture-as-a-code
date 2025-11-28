@@ -1,0 +1,19 @@
+all:
+  children:
+    app:
+      hosts:
+        app:
+          ansible_host: 127.0.0.1
+          ansible_port: 2201
+          ansible_user: vagrant
+          ansible_ssh_private_key_file: .vagrant/machines/app/virtualbox/private_key
+
+    postgresql_servers:
+      hosts:
+        db:
+          ansible_host: 127.0.0.1
+          ansible_port: 2202
+          ansible_user: vagrant
+          ansible_ssh_private_key_file: .vagrant/machines/db/virtualbox/private_key
+          postgresql_role: master
+          postgresql_replication: true

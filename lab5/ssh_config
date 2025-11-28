@@ -1,0 +1,26 @@
+Host app
+  HostName 127.0.0.1
+  User vagrant
+  Port 2201
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile "C:/Users/Doul Sy/Desktop/infrasture-as-a-code-master/lab5/.vagrant/machines/app/virtualbox/private_key"
+  IdentitiesOnly yes
+  LogLevel FATAL
+  PubkeyAcceptedKeyTypes +ssh-rsa
+  HostKeyAlgorithms +ssh-rsa
+
+Host db
+  HostName 127.0.0.1
+  User vagrant
+  Port 2202
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile "C:/Users/Doul Sy/Desktop/infrasture-as-a-code-master/lab5/.vagrant/machines/db/virtualbox/private_key"
+  IdentitiesOnly yes
+  LogLevel FATAL
+  PubkeyAcceptedKeyTypes +ssh-rsa
+  HostKeyAlgorithms +ssh-rsa
+

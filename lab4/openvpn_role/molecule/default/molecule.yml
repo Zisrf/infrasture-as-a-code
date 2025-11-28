@@ -1,0 +1,24 @@
+---
+dependency:
+  name: galaxy
+  enabled: false
+
+driver:
+  name: docker
+
+platforms:
+  - name: openvpn-instance
+    image: ubuntu:20.04
+    privileged: false
+    command: sleep infinity
+    groups:
+      - openvpn_group
+
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      host_key_checking: false
+
+verifier:
+  name: ansible

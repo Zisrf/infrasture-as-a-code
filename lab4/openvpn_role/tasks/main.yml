@@ -1,0 +1,194 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install apt-transport-https
+  apt:
+    name: apt-transport-https
+    state: present
+
+- name: Add universe and multiverse repositories
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+  loop:
+    - deb http://archive.ubuntu.com/ubuntu focal universe
+    - deb http://archive.ubuntu.com/ubuntu focal multiverse
+    - deb http://archive.ubuntu.com/ubuntu focal-updates universe
+    - deb http://archive.ubuntu.com/ubuntu focal-updates multiverse
+
+- name: Install OpenVPN and dependencies
+  apt:
+    name:
+      - openvpn
+      - easy-rsa
+      - openssl
+    state: present
+
+- name: Create main OpenVPN directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /etc/openvpn
+    - /etc/openvpn/server
+    - /etc/openvpn/client
+
+- name: Check if PKI directory exists
+  stat:
+    path: /etc/openvpn/pki
+  register: pki_dir
+
+- name: Create PKI directory only if it doesn't exist
+  file:
+    path: /etc/openvpn/pki
+    state: directory
+    mode: '0755'
+  when: not pki_dir.stat.exists
+
+- name: Copy EasyRSA vars file
+  copy:
+    content: |
+      set_var EASYRSA_REQ_COUNTRY    "{{ easyrsa_country }}"
+      set_var EASYRSA_REQ_PROVINCE   "{{ easyrsa_province }}"
+      set_var EASYRSA_REQ_CITY       "{{ easyrsa_city }}"
+      set_var EASYRSA_REQ_ORG        "{{ easyrsa_org }}"
+      set_var EASYRSA_REQ_EMAIL      "{{ easyrsa_email }}"
+      set_var EASYRSA_REQ_OU         "{{ easyrsa_ou }}"
+      set_var EASYRSA_KEY_SIZE       {{ easyrsa_key_size }}
+      set_var EASYRSA_ALGO           {{ easyrsa_algo }}
+      set_var EASYRSA_CA_EXPIRE      {{ easyrsa_ca_expire }}
+      set_var EASYRSA_CERT_EXPIRE    {{ easyrsa_cert_expire }}
+    dest: /etc/openvpn/vars
+    mode: '0644'
+
+- name: Check if PKI is initialized
+  stat:
+    path: /etc/openvpn/pki/ca.crt
+  register: pki_initialized
+
+- name: Initialize PKI
+  command: /usr/share/easy-rsa/easyrsa --batch init-pki
+  args:
+    chdir: /etc/openvpn
+  when: not pki_initialized.stat.exists
+
+- name: Generate CA certificate
+  command: /usr/share/easy-rsa/easyrsa --batch build-ca nopass
+  args:
+    chdir: /etc/openvpn
+  when: not pki_initialized.stat.exists
+
+- name: Generate server certificate
+  command: /usr/share/easy-rsa/easyrsa --batch gen-req server nopass
+  args:
+    chdir: /etc/openvpn
+  when: not pki_initialized.stat.exists
+
+- name: Sign server certificate
+  command: /usr/share/easy-rsa/easyrsa --batch sign-req server server
+  args:
+    chdir: /etc/openvpn
+  when: not pki_initialized.stat.exists
+
+- name: Generate Diffie-Hellman parameters
+  command: /usr/share/easy-rsa/easyrsa --batch gen-dh
+  args:
+    chdir: /etc/openvpn
+  when: not pki_initialized.stat.exists
+
+- name: Deploy server configuration
+  template:
+    src: ../../templates/server.conf.j2
+    dest: /etc/openvpn/server.conf
+    mode: '0644'
+
+- name: Enable IP forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    state: present
+
+- name: Generate client certificate
+  command: /usr/share/easy-rsa/easyrsa --batch gen-req client1 nopass
+  args:
+    chdir: /etc/openvpn
+  when: not pki_initialized.stat.exists
+
+- name: Sign client certificate
+  command: /usr/share/easy-rsa/easyrsa --batch sign-req client client1
+  args:
+    chdir: /etc/openvpn
+  when: not pki_initialized.stat.exists
+
+- name: Read CA certificate
+  slurp:
+    src: /etc/openvpn/pki/ca.crt
+  register: ca_cert
+
+- name: Read client certificate
+  slurp:
+    src: /etc/openvpn/pki/issued/client1.crt
+  register: client_cert
+
+- name: Read client key
+  slurp:
+    src: /etc/openvpn/pki/private/client1.key
+  register: client_key
+
+- name: Check if OVPN file exists
+  stat:
+    path: "{{ ovpn_output_path }}/client1.ovpn"
+  register: ovpn_file_exists
+
+- name: Create client OVPN file
+  copy:
+    content: |
+      client
+      dev tun
+      proto udp
+      remote {{ openvpn_server_host }} {{ openvpn_port }}
+      resolv-retry infinite
+      nobind
+      persist-key
+      persist-tun
+      remote-cert-tls server
+      cipher AES-256-CBC
+      verb 3
+      <ca>
+      {{ ca_cert.content | b64decode }}
+      </ca>
+      <cert>
+      {{ client_cert.content | b64decode }}
+      </cert>
+      <key>
+      {{ client_key.content | b64decode }}
+      </key>
+    dest: "{{ ovpn_output_path }}/client1.ovpn"
+    mode: '0644'
+  when: not ovpn_file_exists.stat.exists
+
+- name: Check if OpenVPN is running
+  shell: ps aux | grep openvpn | grep -v grep
+  register: openvpn_running
+  changed_when: false
+  failed_when: false
+
+- name: Start OpenVPN server manually (for testing)
+  command: openvpn --config /etc/openvpn/server.conf --daemon
+  when: openvpn_running.rc != 0
+
+- name: Check OVPN file info
+  stat:
+    path: "{{ ovpn_output_path }}/client1.ovpn"
+  register: ovpn_file
+
+- name: Display deployment status
+  debug:
+    msg: |
+      OpenVPN server deployed successfully!
+      Client configuration: {{ ovpn_output_path }}/client1.ovpn ({{ ovpn_file.stat.size | default(0) }} bytes)
+      OpenVPN process: {{ openvpn_running.rc == 0 }}

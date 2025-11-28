@@ -1,0 +1,65 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+    - name: Check if OpenVPN is installed
+      package:
+        name: openvpn
+      check_mode: yes
+
+    - name: Check if OVPN file exists
+      stat:
+        path: /tmp/client1.ovpn
+      register: ovpn_file
+
+    - name: Verify OVPN file has content
+      assert:
+        that:
+          - ovpn_file.stat.exists
+          - ovpn_file.stat.size > 1000
+
+    - name: Check if OpenVPN process is running
+      shell: ps aux | grep openvpn | grep -v grep
+      register: openvpn_process
+      changed_when: false
+
+    - name: Verify OpenVPN process is running
+      assert:
+        that: openvpn_process.stdout_lines | length > 0
+
+    - name: Check IP forwarding is enabled
+      shell: sysctl net.ipv4.ip_forward
+      register: ip_forward
+      changed_when: false
+
+    - name: Verify IP forwarding is set to 1
+      assert:
+        that: ip_forward.stdout == "net.ipv4.ip_forward = 1"
+
+    - name: Check if server configuration exists
+      stat:
+        path: /etc/openvpn/server.conf
+      register: server_conf
+
+    - name: Verify server configuration exists
+      assert:
+        that: server_conf.stat.exists
+
+    - name: Check if certificates exist
+      stat:
+        path: "{{ item }}"
+      loop:
+        - /etc/openvpn/pki/ca.crt
+        - /etc/openvpn/pki/issued/server.crt
+        - /etc/openvpn/pki/private/server.key
+        - /etc/openvpn/pki/dh.pem
+      register: certificates
+
+    - name: Verify all certificates exist
+      assert:
+        that: item.stat.exists
+      loop: "{{ certificates.results }}"
+
+    - name: Display success message
+      debug:
+        msg: "All OpenVPN verification tests passed successfully!"
