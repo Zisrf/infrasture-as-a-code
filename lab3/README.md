@@ -104,6 +104,33 @@ vagrant up
 ansible-playbook playbook.yml
 ```
 
+## Известные проблемы
+
+### Контейнер Django не запускается
+
+В файле `roles/docker/tasks/main.yml` используется условие с `ansible_facts.docker_containers`, которое не является стандартным фактом Ansible. Для корректной работы рекомендуется заменить задачу "Start Django container" на следующую:
+
+```yaml
+- name: Check if Django container exists
+  shell: docker ps -a --filter "name=django_app" --format "{{ '{{' }}.Names{{ '}}' }}"
+  register: django_container
+  changed_when: false
+
+- name: Start Django container
+  shell: |
+    docker run -d \
+      --name django_app \
+      -p {{ django_port }}:8000 \
+      -v {{ static_volume }}:/home/django/static \
+      -v {{ media_volume }}:/home/django/media \
+      --restart unless-stopped \
+      {{ django_image }}
+  become: yes
+  when: django_container.stdout == ""
+```
+
+Или использовать модуль `community.docker.docker_container` для более надежного управления контейнерами.
+
 ## Архитектура
 
 ```
