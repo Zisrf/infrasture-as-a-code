@@ -31,9 +31,9 @@
 - name: Install Docker
   apt:
     name:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
+      - "docker-ce={{ docker_ce_version }}"
+      - "docker-ce-cli={{ docker_ce_cli_version }}"
+      - "containerd.io={{ containerd_version }}"
     state: present
 
 - name: Add user to docker group
@@ -48,18 +48,30 @@
     state: started
     enabled: yes
 
+- name: Install docker-compose
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64"
+    dest: /usr/local/bin/docker-compose
+    mode: '0755'
+
 - name: Pull Django Docker image
   shell: docker pull {{ django_image }}
   become: yes
 
-- name: Start Django container
-  shell: |
-    docker run -d \
-      --name django_app \
-      -p {{ django_port }}:8000 \
-      -v {{ static_volume }}:/home/django/static \
-      -v {{ media_volume }}:/home/django/media \
-      --restart unless-stopped \
-      {{ django_image }}
+- name: Create directory for docker-compose
+  file:
+    path: /opt/django_app
+    state: directory
+    mode: '0755'
+
+- name: Deploy docker-compose template
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/django_app/docker-compose.yml
+    backup: yes
+
+- name: Start Django application with docker-compose
+  shell: docker-compose up -d
+  args:
+    chdir: /opt/django_app
   become: yes
-  when: "'django_app' not in ansible_facts.docker_containers|default([])"

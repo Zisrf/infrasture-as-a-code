@@ -1,4 +1,5 @@
 ---
+nginx_version: "1.18.0-0ubuntu1*"
 static_files_path: /var/www/static
 media_files_path: /var/www/media
 server_name: localhost
