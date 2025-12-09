@@ -1,0 +1,7 @@
+- src: https://github.com/geerlingguy/ansible-role-nginx
+  version: master
+  name: nginx
+
+- src: https://github.com/geerlingguy/ansible-role-docker
+  version: master
+  name: docker

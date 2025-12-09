@@ -2,7 +2,7 @@
 - hosts: localhost
   become: yes
   roles:
-    - openvpn_role
+    - doul_sy.openvpn_server
   vars:
     openvpn_server_host: "localhost"
     ovpn_output_path: "./"

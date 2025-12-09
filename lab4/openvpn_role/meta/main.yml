@@ -3,7 +3,7 @@ galaxy_info:
   author: doul_sy
   description: OpenVPN Server Role
   namespace: doul_sy
-  role_name: openvpn_server
+  role_name: openvpn_role
   license: MIT
   min_ansible_version: 2.9
   platforms:

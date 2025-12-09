@@ -1,29 +1,5 @@
 ---
-- name: Configure replication based on role
-  block:
-    - name: Create replication user on master
-      community.postgresql.postgresql_user:
-        name: "{{ postgresql_replication_user }}"
-        password: "{{ postgresql_replication_password }}"
-        role_attr_flags: "REPLICATION"
-        state: present
-      when: postgresql_role == "master"
-
-    - name: Ensure replication slot exists on master
-      community.postgresql.postgresql_replication_slot:
-        name: "replication_slot_1"
-        state: present
-        slot_type: physical
-      when: postgresql_role == "master"
-
-    - name: Display replication information
-      debug:
-        msg: |
-          {% if postgresql_role == "master" %}
-          Master node configured for replication
-          Replication user: {{ postgresql_replication_user }}
-          Listen addresses: {{ postgresql_listen_addresses | join(', ') }}
-          {% else %}
-          Replica node ready for streaming replication
-          {% endif %}
-  when: postgresql_replication | default(false)
+- name: Skip replication (disabled in this deployment)
+  debug:
+    msg: "Replication feature is disabled for this lab deployment"
+  when: false  # Never executes

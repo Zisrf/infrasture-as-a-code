@@ -66,6 +66,6 @@
 - name: Setup databases and users
   include_tasks: database_setup.yml
 
-- name: Configure replication if enabled
-  include_tasks: replication.yml
-  when: postgresql_replication | default(false)
+# - name: Configure replication if enabled
+#   include_tasks: replication.yml
+#   when: postgresql_replication | default(false)

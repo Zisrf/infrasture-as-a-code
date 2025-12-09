@@ -1,0 +1,7 @@
+---
+postgresql_service_name: "postgresql"
+postgresql_packages:
+  - "postgresql-{{ postgresql_version }}"
+  - "postgresql-client-{{ postgresql_version }}"
+  - "postgresql-contrib-{{ postgresql_version }}"
+  - python3-psycopg2

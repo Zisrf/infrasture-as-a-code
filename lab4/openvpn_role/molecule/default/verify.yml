@@ -9,7 +9,7 @@
 
     - name: Check if OVPN file exists
       stat:
-        path: /tmp/client1.ovpn
+        path: /etc/openvpn/client/client1.ovpn  # Chemin corrigé
       register: ovpn_file
 
     - name: Verify OVPN file has content

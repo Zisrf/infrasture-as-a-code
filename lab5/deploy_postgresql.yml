@@ -9,11 +9,15 @@
   hosts: app
   become: yes
   tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
     - name: Install application dependencies
       apt:
         name:
           - python3
-          - python3-pip
           - postgresql-client
         state: present
 

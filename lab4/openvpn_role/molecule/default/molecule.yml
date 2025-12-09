@@ -11,6 +11,8 @@ platforms:
     image: ubuntu:20.04
     privileged: false
     command: sleep infinity
+    ports:
+      - "1194:1194/udp"  # Exposition du port
     groups:
       - openvpn_group
 

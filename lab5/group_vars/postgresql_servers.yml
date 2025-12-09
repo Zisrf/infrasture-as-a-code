@@ -1,35 +1,14 @@
 ---
-# Configuration de base PostgreSQL
-postgresql_version: "14"
-postgresql_cluster_name: "main"
-postgresql_data_directory: "/var/lib/postgresql/{{ postgresql_version }}/{{ postgresql_cluster_name }}"
-postgresql_port: 5432
-
-# Utilisateurs et bases de données
 postgresql_databases:
   - name: app_db
     owner: app_user
-    encoding: "UTF8"
+    encoding: UTF8
 
 postgresql_users:
   - name: app_user
     password: "app_password123"
-    databases: ["app_db"]
-    privileges: ["ALL"]
+    privileges: "ALL"
 
-# Configuration de réplication
-postgresql_replication: true
-postgresql_replication_user: "replicator"
-postgresql_replication_password: "replication_pass123"
-
-# Configuration réseau
+postgresql_replication: false
+postgresql_role: master
 postgresql_listen_addresses: ['localhost', '192.168.56.21']
-postgresql_max_connections: 100
-
-# Authentification
-postgresql_pg_hba_entries:
-  - { type: local, database: all, user: postgres, method: peer }
-  - { type: local, database: all, user: all, method: peer }
-  - { type: host, database: all, user: all, address: 127.0.0.1/32, method: md5 }
-  - { type: host, database: all, user: all, address: 192.168.56.0/24, method: md5 }
-  - { type: host, database: replication, user: "{{ postgresql_replication_user }}", address: 192.168.56.0/24, method: md5 }

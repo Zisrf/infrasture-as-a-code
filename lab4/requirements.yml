@@ -1,0 +1,3 @@
+---
+- src: ./openvpn_role
+  name: openvpn_role

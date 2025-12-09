@@ -48,18 +48,34 @@
     state: started
     enabled: yes
 
+- name: Create shared directories for volumes
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  loop:
+    - "{{ static_volume }}"
+    - "{{ media_volume }}"
+
 - name: Pull Django Docker image
-  shell: docker pull {{ django_image }}
-  become: yes
+  docker_image:
+    name: "{{ django_image }}"
+    source: pull
 
 - name: Start Django container
-  shell: |
-    docker run -d \
-      --name django_app \
-      -p {{ django_port }}:8000 \
-      -v {{ static_volume }}:/home/django/static \
-      -v {{ media_volume }}:/home/django/media \
-      --restart unless-stopped \
-      {{ django_image }}
-  become: yes
-  when: "'django_app' not in ansible_facts.docker_containers|default([])"
+  docker_container:
+    name: django_app
+    image: "{{ django_image }}"
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - "{{ django_port }}:8000"
+    volumes:
+      - "{{ static_volume }}:/home/django/static"
+      - "{{ media_volume }}:/home/django/media"
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+             python manage.py migrate &&
+             gunicorn locallibrary.wsgi:application --bind 0.0.0.0:8000"
