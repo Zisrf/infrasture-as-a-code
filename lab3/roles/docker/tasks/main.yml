@@ -31,9 +31,9 @@
 - name: Install Docker
   apt:
     name:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
+      - "docker-ce={{ docker_ce_version }}"
+      - "docker-ce-cli={{ docker_ce_cli_version }}"
+      - "containerd.io={{ containerd_version }}"
     state: present
 
 - name: Add user to docker group
@@ -48,34 +48,30 @@
     state: started
     enabled: yes
 
-- name: Create shared directories for volumes
-  file:
-    path: "{{ item }}"
-    state: directory
+- name: Install docker-compose
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64"
+    dest: /usr/local/bin/docker-compose
     mode: '0755'
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-  loop:
-    - "{{ static_volume }}"
-    - "{{ media_volume }}"
 
 - name: Pull Django Docker image
-  docker_image:
-    name: "{{ django_image }}"
-    source: pull
+  shell: docker pull {{ django_image }}
+  become: yes
 
-- name: Start Django container
-  docker_container:
-    name: django_app
-    image: "{{ django_image }}"
-    state: started
-    restart_policy: unless-stopped
-    ports:
-      - "{{ django_port }}:8000"
-    volumes:
-      - "{{ static_volume }}:/home/django/static"
-      - "{{ media_volume }}:/home/django/media"
-    command: >
-      sh -c "python manage.py collectstatic --noinput &&
-             python manage.py migrate &&
-             gunicorn locallibrary.wsgi:application --bind 0.0.0.0:8000"
+- name: Create directory for docker-compose
+  file:
+    path: /opt/django_app
+    state: directory
+    mode: '0755'
+
+- name: Deploy docker-compose template
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/django_app/docker-compose.yml
+    backup: yes
+
+- name: Start Django application with docker-compose
+  shell: docker-compose up -d
+  args:
+    chdir: /opt/django_app
+  become: yes
