@@ -1,0 +1,46 @@
+---
+- name: Verify
+  hosts: all
+  become: yes
+  tasks:
+    - name: Check if Alertmanager binary exists
+      stat:
+        path: /opt/alertmanager/alertmanager
+      register: alertmanager_binary
+
+    - name: Assert Alertmanager binary exists
+      assert:
+        that:
+          - alertmanager_binary.stat.exists
+        fail_msg: "Alertmanager binary not found"
+
+    - name: Check if Alertmanager service is running
+      systemd:
+        name: alertmanager
+      register: alertmanager_service
+
+    - name: Assert Alertmanager service is running
+      assert:
+        that:
+          - alertmanager_service.status.ActiveState == "active"
+        fail_msg: "Alertmanager service is not running"
+
+    - name: Check if Alertmanager configuration file exists
+      stat:
+        path: /etc/alertmanager/alertmanager.yml
+      register: alertmanager_config
+
+    - name: Assert Alertmanager configuration exists
+      assert:
+        that:
+          - alertmanager_config.stat.exists
+        fail_msg: "Alertmanager configuration not found"
+
+    - name: Check Alertmanager web interface
+      uri:
+        url: http://localhost:9093/-/healthy
+        status_code: 200
+      register: alertmanager_health
+      retries: 5
+      delay: 3
+      until: alertmanager_health.status == 200

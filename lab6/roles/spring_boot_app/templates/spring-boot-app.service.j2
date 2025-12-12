@@ -1,0 +1,15 @@
+[Unit]
+Description=Spring Boot Application
+After=network.target
+
+[Service]
+Type=simple
+User={{ app_user }}
+Group={{ app_group }}
+WorkingDirectory={{ app_dir }}
+ExecStart=/usr/bin/java -jar {{ app_dir }}/{{ app_name }}.jar --spring.config.location={{ app_dir }}/application.yml
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

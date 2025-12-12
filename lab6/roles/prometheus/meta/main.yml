@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  author: Doul Sy
+  description: Prometheus monitoring system installation and configuration
+  company: "Your Company"
+  license: "MIT"
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+  galaxy_tags:
+    - monitoring
+    - prometheus
+    - metrics
+
+dependencies: []
