@@ -58,6 +58,14 @@
     mode: '0644'
     remote_src: yes
 
+- name: Create logs directory
+  file:
+    path: "{{ app_dir }}/logs"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+
 - name: Copy application configuration
   template:
     src: application.yml.j2

@@ -12,22 +12,22 @@ groups:
           description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 2 minutes."
 
       - alert: HighMemoryUsage
-        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.85
+        expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.85
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: "High memory usage on {{ $labels.instance }}"
-          description: "Memory usage is above 85% on {{ $labels.instance }} (current value: {{ $value }})"
+          summary: "High JVM heap memory usage on {{ $labels.instance }}"
+          description: "JVM heap memory usage is above 85% on {{ $labels.instance }} (current value: {{ $value }})"
 
       - alert: HighCPUUsage
-        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        expr: process_cpu_usage > 0.80
         for: 5m
         labels:
           severity: warning
         annotations:
           summary: "High CPU usage on {{ $labels.instance }}"
-          description: "CPU usage is above 80% on {{ $labels.instance }} (current value: {{ $value }})"
+          description: "Process CPU usage is above 80% on {{ $labels.instance }} (current value: {{ $value }})"
 
       - alert: ApplicationResponseTimeHigh
         expr: http_server_requests_seconds_sum / http_server_requests_seconds_count > 1
