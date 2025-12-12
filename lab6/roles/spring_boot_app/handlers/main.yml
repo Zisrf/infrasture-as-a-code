@@ -1,0 +1,5 @@
+---
+- name: restart spring-boot-app
+  systemd:
+    name: spring-boot-app
+    state: restarted

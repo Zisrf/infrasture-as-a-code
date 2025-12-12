@@ -1,0 +1,25 @@
+---
+# Ansible Galaxy requirements for Lab 6
+# These are the roles developed for this lab
+
+roles:
+  # Note: These roles are local and can be published to Ansible Galaxy
+  # After publishing, you can reference them here like:
+  # - src: your_username.prometheus
+  #   version: "1.0.0"
+  
+  # For now, we use local roles from the roles/ directory
+  - name: prometheus
+    src: roles/prometheus
+    
+  - name: alertmanager
+    src: roles/alertmanager
+    
+  - name: grafana
+    src: roles/grafana
+    
+  - name: loki
+    src: roles/loki
+    
+  - name: spring_boot_app
+    src: roles/spring_boot_app

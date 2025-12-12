@@ -1,0 +1,17 @@
+---
+alertmanager_version: "0.26.0"
+alertmanager_user: alertmanager
+alertmanager_group: alertmanager
+alertmanager_install_dir: /opt/alertmanager
+alertmanager_config_dir: /etc/alertmanager
+alertmanager_data_dir: /var/lib/alertmanager
+alertmanager_port: 9093
+
+# Email configuration for alerts
+smtp_host: "smtp.gmail.com"
+smtp_port: 587
+smtp_from: "alerts@example.com"
+smtp_to: "admin@example.com"
+smtp_username: "alerts@example.com"
+smtp_password: "changeme"
+smtp_require_tls: true

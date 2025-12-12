@@ -1,0 +1,15 @@
+---
+- name: Deploy Spring Boot Application
+  hosts: app
+  become: yes
+  roles:
+    - spring_boot_app
+
+- name: Deploy Monitoring Stack
+  hosts: monitoring
+  become: yes
+  roles:
+    - prometheus
+    - alertmanager
+    - grafana
+    - loki

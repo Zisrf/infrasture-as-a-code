@@ -1,0 +1,25 @@
+server:
+  port: {{ app_port }}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+spring:
+  application:
+    name: {{ app_name }}
+
+logging:
+  level:
+    root: INFO
+  file:
+    name: {{ app_dir }}/logs/application.log

@@ -1,0 +1,11 @@
+---
+app_name: "spring-boot-demo"
+app_port: 8080
+app_user: springboot
+app_group: springboot
+app_dir: /opt/spring-boot-app
+app_git_repo: "https://github.com/grafana/spring-boot-demo.git"
+app_git_version: "main"
+
+# Java configuration
+java_version: "17"

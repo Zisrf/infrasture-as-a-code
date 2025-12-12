@@ -1,0 +1,6 @@
+---
+- name: Converge
+  hosts: all
+  become: yes
+  roles:
+    - role: spring_boot_app
