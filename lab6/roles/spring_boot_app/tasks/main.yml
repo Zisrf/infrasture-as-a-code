@@ -39,6 +39,8 @@
     dest: "{{ app_dir }}/source"
     version: "{{ app_git_version }}"
     force: yes
+  become: yes
+  become_user: root
 
 - name: Set ownership of cloned repository
   file:
