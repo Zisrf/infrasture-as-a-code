@@ -47,8 +47,7 @@
     fi
   args:
     executable: /bin/bash
-  become: yes
-  become_user: root
+  # No become directives - inherits from play level (become: yes = root)
 
 - name: Set ownership of cloned repository
   file:
