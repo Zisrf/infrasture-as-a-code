@@ -40,10 +40,21 @@
 
 - name: Clone Spring Boot application repository
   shell: |
-    if [ -d "{{ app_dir }}/source" ]; then
-      cd "{{ app_dir }}/source" && git fetch origin && git reset --hard origin/{{ app_git_version }}
+    set -e
+    if [ -d "{{ app_dir }}/source/.git" ]; then
+      cd "{{ app_dir }}/source"
+      git fetch origin
+      git reset --hard origin/{{ app_git_version }}
     else
-      git clone {{ app_git_repo }} "{{ app_dir }}/source" && cd "{{ app_dir }}/source" && git checkout {{ app_git_version }}
+      rm -rf "{{ app_dir }}/source"
+      git clone {{ app_git_repo }} "{{ app_dir }}/source"
+      cd "{{ app_dir }}/source"
+      git checkout {{ app_git_version }}
+    fi
+    # Verify POM exists
+    if [ ! -f "{{ app_dir }}/source/pom.xml" ]; then
+      echo "ERROR: pom.xml not found in repository"
+      exit 1
     fi
   args:
     executable: /bin/bash
