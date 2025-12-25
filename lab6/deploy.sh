@@ -50,15 +50,30 @@ sleep 10
 
 # Step 2: Check connectivity
 echo "Step 2: Checking connectivity to VMs..."
-ansible -i inventories/hosts.ini all -m ping
 
-if [ $? -ne 0 ]; then
-    echo -e "${RED}Error: Cannot connect to VMs${NC}"
-    exit 1
+# Try to ping VMs with better error handling
+if ! ansible -i inventories/hosts.ini all -m ping 2>&1; then
+    echo ""
+    echo -e "${YELLOW}Warning: Ansible ping failed. This may be normal on Windows/Git Bash.${NC}"
+    echo -e "${YELLOW}Attempting alternative connectivity test...${NC}"
+    echo ""
+    
+    # Alternative test using vagrant ssh
+    if vagrant ssh app -c "echo 'App VM is accessible'" && \
+       vagrant ssh monitoring -c "echo 'Monitoring VM is accessible'"; then
+        echo -e "${GREEN}✓ VMs are accessible via SSH${NC}"
+        echo ""
+        echo -e "${YELLOW}Note: If you're on Windows, consider using WSL for better Ansible compatibility.${NC}"
+        echo -e "${YELLOW}Continuing with deployment...${NC}"
+        echo ""
+    else
+        echo -e "${RED}Error: Cannot connect to VMs via SSH${NC}"
+        exit 1
+    fi
+else
+    echo -e "${GREEN}✓ Connectivity check passed${NC}"
+    echo ""
 fi
-
-echo -e "${GREEN}✓ Connectivity check passed${NC}"
-echo ""
 
 # Step 3: Deploy monitoring stack
 echo "Step 3: Deploying monitoring stack and application..."

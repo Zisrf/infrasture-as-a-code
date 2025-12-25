@@ -151,6 +151,36 @@ ansible-playbook -i inventories/hosts.ini deploy.yml --tags app
 
 ## Troubleshooting
 
+### Windows/Git Bash Issues
+
+If you encounter Python tracebacks when running `ansible` commands on Windows:
+
+**Option 1: Use WSL (Recommended)**
+1. Install WSL2 with Ubuntu
+2. Install Ansible inside WSL: `sudo apt update && sudo apt install ansible`
+3. Run all commands from WSL terminal
+
+**Option 2: Manual Deployment**
+Skip the `deploy.sh` script and run commands manually:
+
+```bash
+# 1. Start VMs
+vagrant up
+
+# 2. Test connectivity manually
+vagrant ssh app -c "echo 'VM is ready'"
+vagrant ssh monitoring -c "echo 'VM is ready'"
+
+# 3. Run Ansible playbook
+ansible-playbook -i inventories/hosts.ini deploy.yml
+```
+
+**Option 3: Fix Ansible on Git Bash**
+If Ansible fails with Python errors on Windows:
+- Install Ansible through pip: `pip install ansible`
+- Ensure Python 3.8+ is in PATH
+- Set: `export ANSIBLE_PYTHON_INTERPRETER=/usr/bin/python3`
+
 ### Application Won't Start
 
 ```bash

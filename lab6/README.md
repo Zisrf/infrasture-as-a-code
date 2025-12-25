@@ -166,6 +166,11 @@ lab6/
 - Molecule (для тестирования ролей)
 - Docker (для тестирования Molecule)
 
+**Важно для пользователей Windows:**
+- Рекомендуется использовать WSL2 (Windows Subsystem for Linux) для запуска Ansible
+- При использовании Git Bash могут возникать проблемы с Python/Ansible
+- Альтернатива: запускать команды Ansible вручную (см. QUICK_START.md)
+
 ## Очистка
 
 ```bash
