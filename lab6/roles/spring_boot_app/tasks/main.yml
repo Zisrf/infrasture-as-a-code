@@ -33,12 +33,20 @@
     group: "{{ app_group }}"
     mode: '0755'
 
+- name: Check if repository already exists
+  stat:
+    path: "{{ app_dir }}/source/.git"
+  register: repo_exists
+
 - name: Clone Spring Boot application repository
-  git:
-    repo: "{{ app_git_repo }}"
-    dest: "{{ app_dir }}/source"
-    version: "{{ app_git_version }}"
-    force: yes
+  shell: |
+    if [ -d "{{ app_dir }}/source" ]; then
+      cd "{{ app_dir }}/source" && git fetch origin && git reset --hard origin/{{ app_git_version }}
+    else
+      git clone {{ app_git_repo }} "{{ app_dir }}/source" && cd "{{ app_dir }}/source" && git checkout {{ app_git_version }}
+    fi
+  args:
+    executable: /bin/bash
   become: yes
   become_user: root
 
