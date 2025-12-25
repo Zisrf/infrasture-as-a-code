@@ -181,6 +181,20 @@ If Ansible fails with Python errors on Windows:
 - Ensure Python 3.8+ is in PATH
 - Set: `export ANSIBLE_PYTHON_INTERPRETER=/usr/bin/python3`
 
+### Ansible Privilege Escalation Error
+
+If you see errors like "Operation not permitted" when cloning git repository:
+
+```
+Failed to set permissions on the temporary files Ansible needs to create when becoming an unprivileged user
+```
+
+This is already fixed in the current version with `allow_world_readable_tmpfiles = True` in `ansible.cfg`. If you still encounter this:
+
+1. Ensure you're using the latest ansible.cfg from the repository
+2. Alternatively, set environment variable: `export ANSIBLE_ALLOW_WORLD_READABLE_TMPFILES=true`
+3. Or run the playbook with: `ansible-playbook -i inventories/hosts.ini deploy.yml -e 'ansible_allow_world_readable_tmpfiles=true'`
+
 ### Application Won't Start
 
 ```bash

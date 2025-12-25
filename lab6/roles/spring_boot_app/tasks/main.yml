@@ -39,15 +39,18 @@
     dest: "{{ app_dir }}/source"
     version: "{{ app_git_version }}"
     force: yes
+  become: yes
   become_user: "{{ app_user }}"
 
 - name: Build Spring Boot application
   command: mvn clean package -DskipTests
   args:
     chdir: "{{ app_dir }}/source"
+  become: yes
   become_user: "{{ app_user }}"
   environment:
     JAVA_HOME: "/usr/lib/jvm/java-{{ java_version }}-openjdk-amd64"
+    HOME: "/home/{{ app_user }}"
 
 - name: Copy application JAR
   copy:
