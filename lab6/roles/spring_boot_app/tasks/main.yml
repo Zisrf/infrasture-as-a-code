@@ -1,0 +1,124 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install required packages
+  apt:
+    name:
+      - git
+      - maven
+      - "openjdk-{{ java_version }}-jdk"
+    state: present
+
+- name: Create application group
+  group:
+    name: "{{ app_group }}"
+    state: present
+
+- name: Create application user
+  user:
+    name: "{{ app_user }}"
+    group: "{{ app_group }}"
+    shell: /bin/bash
+    system: yes
+    create_home: yes
+
+- name: Create application directory
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+
+- name: Check if repository already exists
+  stat:
+    path: "{{ app_dir }}/source/.git"
+  register: repo_exists
+
+- name: Clone Spring Boot application repository
+  shell: |
+    set -e
+    # Configure git to trust this directory (avoids dubious ownership errors)
+    git config --global --add safe.directory "{{ app_dir }}/source" || true
+    
+    if [ -d "{{ app_dir }}/source/.git" ]; then
+      cd "{{ app_dir }}/source"
+      git fetch origin
+      git reset --hard origin/{{ app_git_version }}
+    else
+      rm -rf "{{ app_dir }}/source"
+      git clone {{ app_git_repo }} "{{ app_dir }}/source"
+      cd "{{ app_dir }}/source"
+      git checkout {{ app_git_version }}
+    fi
+    # Verify POM exists
+    if [ ! -f "{{ app_dir }}/source/pom.xml" ]; then
+      echo "ERROR: pom.xml not found in repository"
+      exit 1
+    fi
+  args:
+    executable: /bin/bash
+  # No become directives - inherits from play level (become: yes = root)
+
+- name: Set ownership of cloned repository
+  file:
+    path: "{{ app_dir }}/source"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    recurse: yes
+
+- name: Build Spring Boot application
+  command: mvn clean package -DskipTests
+  args:
+    chdir: "{{ app_dir }}/source"
+  become: yes
+  become_user: "{{ app_user }}"
+  environment:
+    JAVA_HOME: "/usr/lib/jvm/java-{{ java_version }}-openjdk-amd64"
+    HOME: "/home/{{ app_user }}"
+
+- name: Copy application JAR
+  copy:
+    src: "{{ app_dir }}/source/target/{{ app_name }}-0.0.1-SNAPSHOT.jar"
+    dest: "{{ app_dir }}/{{ app_name }}.jar"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0644'
+    remote_src: yes
+
+- name: Create logs directory
+  file:
+    path: "{{ app_dir }}/logs"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+
+- name: Copy application configuration
+  template:
+    src: application.yml.j2
+    dest: "{{ app_dir }}/application.yml"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0644'
+  notify: restart spring-boot-app
+
+- name: Copy systemd service file
+  template:
+    src: spring-boot-app.service.j2
+    dest: /etc/systemd/system/spring-boot-app.service
+    mode: '0644'
+  notify: restart spring-boot-app
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start Spring Boot application
+  systemd:
+    name: spring-boot-app
+    enabled: yes
+    state: started

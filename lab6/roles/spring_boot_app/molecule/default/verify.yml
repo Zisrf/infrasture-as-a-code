@@ -1,0 +1,50 @@
+---
+- name: Verify
+  hosts: all
+  become: yes
+  tasks:
+    - name: Check if Java is installed
+      command: java -version
+      register: java_version
+      changed_when: false
+      failed_when: java_version.rc != 0
+
+    - name: Check if application JAR exists
+      stat:
+        path: /opt/spring-boot-app/spring-boot-demo.jar
+      register: app_jar
+
+    - name: Assert application JAR exists
+      assert:
+        that:
+          - app_jar.stat.exists
+        fail_msg: "Application JAR not found"
+
+    - name: Check if Spring Boot service is running
+      systemd:
+        name: spring-boot-app
+      register: app_service
+
+    - name: Assert Spring Boot service is running
+      assert:
+        that:
+          - app_service.status.ActiveState == "active"
+        fail_msg: "Spring Boot service is not running"
+
+    - name: Check application health endpoint
+      uri:
+        url: http://localhost:8080/actuator/health
+        status_code: 200
+      register: app_health
+      retries: 10
+      delay: 5
+      until: app_health.status == 200
+
+    - name: Check Prometheus metrics endpoint
+      uri:
+        url: http://localhost:8080/actuator/prometheus
+        status_code: 200
+      register: metrics_endpoint
+      retries: 5
+      delay: 3
+      until: metrics_endpoint.status == 200

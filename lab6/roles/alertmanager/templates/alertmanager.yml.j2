@@ -1,0 +1,67 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: '{{ smtp_host }}:{{ smtp_port }}'
+  smtp_from: '{{ smtp_from }}'
+  smtp_auth_username: '{{ smtp_username }}'
+  smtp_auth_password: '{{ smtp_password }}'
+  smtp_require_tls: {{ smtp_require_tls | lower }}
+
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'email-notifications'
+  routes:
+    - match:
+        severity: critical
+      receiver: 'email-notifications'
+      repeat_interval: 4h
+    - match:
+        severity: warning
+      receiver: 'email-notifications'
+      repeat_interval: 12h
+
+receivers:
+  - name: 'email-notifications'
+    email_configs:
+      - to: '{{ smtp_to }}'
+        from: '{{ smtp_from }}'
+        smarthost: '{{ smtp_host }}:{{ smtp_port }}'
+        auth_username: '{{ smtp_username }}'
+        auth_password: '{{ smtp_password }}'
+        require_tls: {{ smtp_require_tls | lower }}
+        headers:
+          Subject: '{{ "{{ .GroupLabels.alertname }}" }} - {{ "{{ .Status | toUpper }}" }}'
+        html: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; }
+              .alert { padding: 10px; margin: 10px 0; border-radius: 5px; }
+              .critical { background-color: #ffdddd; border-left: 5px solid #ff0000; }
+              .warning { background-color: #fff4dd; border-left: 5px solid #ff9900; }
+            </style>
+          </head>
+          <body>
+            <h2>Alert: {{ "{{ .GroupLabels.alertname }}" }}</h2>
+            <p><strong>Status:</strong> {{ "{{ .Status | toUpper }}" }}</p>
+            {{ "{{ range .Alerts }}" }}
+            <div class="alert {{ "{{ .Labels.severity }}" }}">
+              <p><strong>Alert:</strong> {{ "{{ .Labels.alertname }}" }}</p>
+              <p><strong>Severity:</strong> {{ "{{ .Labels.severity }}" }}</p>
+              <p><strong>Summary:</strong> {{ "{{ .Annotations.summary }}" }}</p>
+              <p><strong>Description:</strong> {{ "{{ .Annotations.description }}" }}</p>
+              <p><strong>Started at:</strong> {{ "{{ .StartsAt }}" }}</p>
+            </div>
+            {{ "{{ end }}" }}
+          </body>
+          </html>
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']

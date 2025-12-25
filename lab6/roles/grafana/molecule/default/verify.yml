@@ -1,0 +1,41 @@
+---
+- name: Verify
+  hosts: all
+  become: yes
+  tasks:
+    - name: Check if Grafana package is installed
+      command: dpkg -l grafana
+      register: grafana_package
+      changed_when: false
+      failed_when: grafana_package.rc != 0
+
+    - name: Check if Grafana service is running
+      systemd:
+        name: grafana-server
+      register: grafana_service
+
+    - name: Assert Grafana service is running
+      assert:
+        that:
+          - grafana_service.status.ActiveState == "active"
+        fail_msg: "Grafana service is not running"
+
+    - name: Check if Grafana configuration file exists
+      stat:
+        path: /etc/grafana/grafana.ini
+      register: grafana_config
+
+    - name: Assert Grafana configuration exists
+      assert:
+        that:
+          - grafana_config.stat.exists
+        fail_msg: "Grafana configuration not found"
+
+    - name: Check Grafana web interface
+      uri:
+        url: http://localhost:3000/api/health
+        status_code: 200
+      register: grafana_health
+      retries: 10
+      delay: 5
+      until: grafana_health.status == 200

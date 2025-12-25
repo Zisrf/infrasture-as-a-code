@@ -1,0 +1,48 @@
+groups:
+  - name: application_alerts
+    interval: 30s
+    rules:
+      - alert: InstanceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance {{ $labels.instance }} down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 2 minutes."
+
+      - alert: HighMemoryUsage
+        expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High JVM heap memory usage on {{ $labels.instance }}"
+          description: "JVM heap memory usage is above 85% on {{ $labels.instance }} (current value: {{ $value }})"
+
+      - alert: HighCPUUsage
+        expr: process_cpu_usage > 0.80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "Process CPU usage is above 80% on {{ $labels.instance }} (current value: {{ $value }})"
+
+      - alert: ApplicationResponseTimeHigh
+        expr: http_server_requests_seconds_sum / http_server_requests_seconds_count > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time for application"
+          description: "Average response time is above 1 second (current value: {{ $value }}s)"
+
+      - alert: ApplicationErrorRateHigh
+        expr: rate(http_server_requests_seconds_count{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate for application"
+          description: "Error rate is above 5% (current value: {{ $value }})"
