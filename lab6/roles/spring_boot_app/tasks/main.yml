@@ -41,6 +41,9 @@
 - name: Clone Spring Boot application repository
   shell: |
     set -e
+    # Configure git to trust this directory (avoids dubious ownership errors)
+    git config --global --add safe.directory "{{ app_dir }}/source" || true
+    
     if [ -d "{{ app_dir }}/source/.git" ]; then
       cd "{{ app_dir }}/source"
       git fetch origin
