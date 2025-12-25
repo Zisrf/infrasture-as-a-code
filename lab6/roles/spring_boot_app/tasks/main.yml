@@ -39,8 +39,13 @@
     dest: "{{ app_dir }}/source"
     version: "{{ app_git_version }}"
     force: yes
-  become: yes
-  become_user: "{{ app_user }}"
+
+- name: Set ownership of cloned repository
+  file:
+    path: "{{ app_dir }}/source"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    recurse: yes
 
 - name: Build Spring Boot application
   command: mvn clean package -DskipTests

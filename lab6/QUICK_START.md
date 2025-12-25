@@ -189,11 +189,15 @@ If you see errors like "Operation not permitted" when cloning git repository:
 Failed to set permissions on the temporary files Ansible needs to create when becoming an unprivileged user
 ```
 
-This is already fixed in the current version with `allow_world_readable_tmpfiles = True` in `ansible.cfg`. If you still encounter this:
+**Solution**: This is fixed in the current version by:
+1. Using SSH pipelining (`pipelining = True` in ansible.cfg) to avoid temporary files
+2. Cloning repository as root and then fixing ownership
+3. Building application as the springboot user with proper environment
 
-1. Ensure you're using the latest ansible.cfg from the repository
-2. Alternatively, set environment variable: `export ANSIBLE_ALLOW_WORLD_READABLE_TMPFILES=true`
-3. Or run the playbook with: `ansible-playbook -i inventories/hosts.ini deploy.yml -e 'ansible_allow_world_readable_tmpfiles=true'`
+The configuration is already set in `ansible.cfg`. If you still encounter this, ensure:
+- You're in the lab6 directory when running ansible-playbook
+- The ansible.cfg file is present in the current directory
+- SSH access is working: `vagrant ssh app -c "sudo -u springboot whoami"`
 
 ### Application Won't Start
 
