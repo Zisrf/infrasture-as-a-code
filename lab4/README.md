@@ -39,7 +39,8 @@ cp client1.ovpn /mnt/c/Users/ВАШ_ПОЛЬЗОВАТЕЛЬ/Downloads/
 1. Скачайте и установите [OpenVPN GUI для Windows](https://openvpn.net/community-downloads/)
 2. Правый клик на иконке OpenVPN GUI в системном трее
 3. Выберите "Import file..." и найдите `client1.ovpn`
-4. Нажмите "Connect" для подключения к VPN
+
+**Важно для тестирования:** Конфигурация по умолчанию использует `localhost` и предназначена для демонстрации работы роли. Подключение из Windows к серверу в WSL потребует дополнительной настройки (см. раздел "Troubleshooting" → "Connection Timeout"). Для реального использования разверните OpenVPN на удалённом сервере и укажите его IP в `openvpn_server_host`.
 
 ---
 
@@ -201,6 +202,60 @@ echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/$USER
 
 ### OpenVPN client import fails
 Ensure the `.ovpn` file only contains PEM-encoded certificates without extra text. The fix in this version addresses this issue.
+
+### Connection Timeout when connecting from Windows OpenVPN GUI
+
+**Problem**: The `.ovpn` file imports successfully but connection times out after "Connecting..."
+
+**Причина (Reason)**: В конфигурации по умолчанию сервер настроен на `localhost`, который работает только для тестирования внутри WSL. Windows OpenVPN GUI не может подключиться к `localhost` WSL.
+
+**Решения (Solutions):**
+
+#### Вариант 1: Для реального VPN сервера (рекомендуется)
+Если вы хотите подключаться к реальному VPN серверу:
+
+1. Разверните OpenVPN на удалённом сервере (VPS, облако)
+2. В `openvpn_final.yml` измените `openvpn_server_host` на IP или домен вашего сервера:
+   ```yaml
+   vars:
+     openvpn_server_host: "YOUR_SERVER_IP"  # например: "192.168.1.100" или "vpn.example.com"
+     ovpn_output_path: "./"
+   ```
+3. Убедитесь что порт UDP/1194 открыт в файрволе сервера
+4. Запустите playbook на сервере
+5. Скопируйте `client1.ovpn` и подключайтесь из Windows
+
+#### Вариант 2: Для тестирования в WSL (продвинутый)
+Для подключения из Windows к OpenVPN в WSL:
+
+1. Узнайте IP адрес WSL:
+   ```bash
+   ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1
+   ```
+
+2. Измените в `openvpn_final.yml`:
+   ```yaml
+   vars:
+     openvpn_server_host: "WSL_IP_ADDRESS"  # IP из шага 1
+   ```
+
+3. Настройте проброс порта в Windows PowerShell (от администратора):
+   ```powershell
+   netsh interface portproxy add v4tov4 listenport=1194 listenaddress=0.0.0.0 connectport=1194 connectaddress=WSL_IP_ADDRESS
+   ```
+
+4. В файрволе Windows разрешите входящие соединения на UDP/1194
+
+5. Перезапустите playbook и используйте обновлённый `client1.ovpn`
+
+#### Вариант 3: Только для демонстрации работы роли
+Если нужно только проверить что роль работает (без реального подключения):
+
+1. Убедитесь что файл `client1.ovpn` создался в `lab4/`
+2. Проверьте что он импортируется в OpenVPN GUI без ошибок
+3. Это подтверждает что роль работает корректно
+
+**Примечание**: Connection timeout это ожидаемое поведение при конфигурации `localhost` для WSL, так как это тестовая конфигурация. Для реального использования разверните сервер на удалённой машине.
 
 ### Connection fails
 - Check firewall rules allow UDP/1194
