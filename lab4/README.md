@@ -3,6 +3,39 @@
 ## Overview
 This lab demonstrates how to write Molecule tests for Ansible roles by creating an OpenVPN server role.
 
+## Quick Start (для Windows пользователей)
+
+### Шаг 1: Подготовка
+1. Установите [WSL2 (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/install) с Ubuntu
+2. В WSL установите Ansible:
+   ```bash
+   sudo apt update
+   sudo apt install ansible python3-pip
+   ```
+
+### Шаг 2: Запуск
+```bash
+cd lab4
+ansible-galaxy install -r requirements.yml
+ansible-playbook -i inventory.ini openvpn_final.yml
+```
+
+### Шаг 3: Получение файла конфигурации
+После выполнения playbook файл `client1.ovpn` будет находиться в директории `lab4`.
+
+Скопируйте его в Windows:
+```bash
+cp client1.ovpn /mnt/c/Users/ВАШ_ПОЛЬЗОВАТЕЛЬ/Downloads/
+```
+
+### Шаг 4: Подключение
+1. Скачайте и установите [OpenVPN GUI для Windows](https://openvpn.net/community-downloads/)
+2. Правый клик на иконке OpenVPN GUI в системном трее
+3. Выберите "Import file..." и найдите `client1.ovpn`
+4. Нажмите "Connect" для подключения к VPN
+
+---
+
 ## Project Structure
 ```
 lab4/
@@ -72,11 +105,53 @@ molecule destroy   # Clean up
 
 ## Client Configuration
 
-After running the playbook, you'll find `client1.ovpn` in the specified output path (default: `/etc/openvpn/client/`). 
+After running the playbook, you'll find `client1.ovpn` in the output path specified by the `ovpn_output_path` variable.
 
-To use it:
+### For Windows Users
+
+When running the `openvpn_final.yml` playbook, the `.ovpn` file is saved to the current directory (`./`) by default.
+
+**To get the configuration file on Windows:**
+
+1. **If running Ansible on WSL (Windows Subsystem for Linux):**
+   ```bash
+   cd lab4
+   ansible-galaxy install -r requirements.yml
+   ansible-playbook -i inventory.ini openvpn_final.yml
+   # The client1.ovpn file will be in the lab4 directory
+   ```
+   
+   Copy the file to Windows:
+   ```bash
+   # Copy to your Windows Downloads folder
+   cp client1.ovpn /mnt/c/Users/YOUR_USERNAME/Downloads/
+   ```
+
+2. **If running on a remote Linux server:**
+   - Use WinSCP, FileZilla, or `scp` to download `client1.ovpn` from the server
+   - Or use PowerShell with `scp`:
+     ```powershell
+     scp user@server:/path/to/lab4/client1.ovpn C:\Users\YOUR_USERNAME\Downloads\
+     ```
+
+3. **Import into OpenVPN GUI for Windows:**
+   - Download and install [OpenVPN GUI for Windows](https://openvpn.net/community-downloads/)
+   - Right-click the OpenVPN GUI system tray icon
+   - Select "Import file..." or "Import from file..."
+   - Browse to `client1.ovpn` and select it
+   - Click "Connect" to establish the VPN connection
+
+**Note:** The file location can be changed by modifying `ovpn_output_path` variable in `openvpn_final.yml`:
+```yaml
+vars:
+  ovpn_output_path: "/etc/openvpn/client"  # or any other path
+```
+
+### For Linux/macOS Users
+
+To use the configuration:
 1. Copy `client1.ovpn` to your client machine
-2. Import it into your OpenVPN client (OpenVPN GUI, NetworkManager, etc.)
+2. Import it into your OpenVPN client (OpenVPN GUI, NetworkManager, Tunnelblick, etc.)
 3. Connect to the VPN server
 
 ## Fixes Applied
