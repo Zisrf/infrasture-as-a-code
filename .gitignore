@@ -1,0 +1,19 @@
+# Ansible artifacts
+*.retry
+
+# OpenVPN generated files
+*.ovpn
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Molecule
+.molecule/
+.cache/
+
+# Virtual environments
+venv/
+env/
+ENV/

@@ -102,7 +102,7 @@
 
 - name: Deploy server configuration
   template:
-    src: ../../templates/server.conf.j2
+    src: server.conf.j2
     dest: /etc/openvpn/server.conf
     mode: '0644'
 
@@ -112,27 +112,35 @@
     value: '1'
     state: present
 
+- name: Check if client certificate exists
+  stat:
+    path: /etc/openvpn/pki/issued/client1.crt
+  register: client_cert_exists
+
 - name: Generate client certificate
   command: /usr/share/easy-rsa/easyrsa --batch gen-req client1 nopass
   args:
     chdir: /etc/openvpn
-  when: not pki_initialized.stat.exists
+  when: not client_cert_exists.stat.exists
 
 - name: Sign client certificate
   command: /usr/share/easy-rsa/easyrsa --batch sign-req client client1
   args:
     chdir: /etc/openvpn
-  when: not pki_initialized.stat.exists
+  when: not client_cert_exists.stat.exists
 
 - name: Read CA certificate
   slurp:
     src: /etc/openvpn/pki/ca.crt
   register: ca_cert
 
-- name: Read client certificate
-  slurp:
-    src: /etc/openvpn/pki/issued/client1.crt
-  register: client_cert
+- name: Extract PEM certificate from client certificate
+  shell: |
+    sed -n '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/p' /etc/openvpn/pki/issued/client1.crt
+  register: client_cert_pem
+  changed_when: false
+  args:
+    warn: false
 
 - name: Read client key
   slurp:
@@ -162,7 +170,7 @@
       {{ ca_cert.content | b64decode }}
       </ca>
       <cert>
-      {{ client_cert.content | b64decode }}
+      {{ client_cert_pem.stdout }}
       </cert>
       <key>
       {{ client_key.content | b64decode }}
