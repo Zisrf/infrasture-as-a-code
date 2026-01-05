@@ -17,7 +17,14 @@ This lab demonstrates how to write Molecule tests for Ansible roles by creating 
 ```bash
 cd lab4
 ansible-galaxy install -r requirements.yml
-ansible-playbook -i inventory.ini openvpn_final.yml
+ansible-playbook -i inventory.ini openvpn_final.yml --ask-become-pass
+```
+
+**Важно:** Playbook требует sudo права. Флаг `--ask-become-pass` (или `-K`) запросит ваш sudo пароль.
+
+Если хотите избежать ввода пароля, настройте passwordless sudo:
+```bash
+echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/$USER
 ```
 
 ### Шаг 3: Получение файла конфигурации
@@ -75,7 +82,15 @@ ansible-galaxy install -r requirements.yml
 
 2. Run the playbook:
 ```bash
-ansible-playbook -i inventory.ini openvpn_final.yml
+ansible-playbook -i inventory.ini openvpn_final.yml --ask-become-pass
+```
+
+**Note:** The playbook requires sudo privileges. Use `--ask-become-pass` (or `-K`) to provide your sudo password when prompted.
+
+Alternatively, configure passwordless sudo:
+```bash
+echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/$USER
+```
 ```
 
 ## Configuration
@@ -170,6 +185,19 @@ Failed to import file. This profile requires additional files for successful imp
 **Solution**: Standardized the role name as `doul_sy.openvpn_server` across all configuration files.
 
 ## Troubleshooting
+
+### "sudo: a password is required" error
+**Problem**: Ansible playbook fails with error: `"module_stderr": "sudo: a password is required\n"`
+
+**Solution**: The playbook requires sudo privileges. Add `--ask-become-pass` (or `-K`) flag:
+```bash
+ansible-playbook -i inventory.ini openvpn_final.yml --ask-become-pass
+```
+
+Or configure passwordless sudo:
+```bash
+echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/$USER
+```
 
 ### OpenVPN client import fails
 Ensure the `.ovpn` file only contains PEM-encoded certificates without extra text. The fix in this version addresses this issue.
