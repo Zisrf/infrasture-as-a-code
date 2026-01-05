@@ -112,17 +112,22 @@
     value: '1'
     state: present
 
+- name: Check if client certificate exists
+  stat:
+    path: /etc/openvpn/pki/issued/client1.crt
+  register: client_cert_exists
+
 - name: Generate client certificate
   command: /usr/share/easy-rsa/easyrsa --batch gen-req client1 nopass
   args:
     chdir: /etc/openvpn
-  when: not pki_initialized.stat.exists
+  when: not client_cert_exists.stat.exists
 
 - name: Sign client certificate
   command: /usr/share/easy-rsa/easyrsa --batch sign-req client client1
   args:
     chdir: /etc/openvpn
-  when: not pki_initialized.stat.exists
+  when: not client_cert_exists.stat.exists
 
 - name: Read CA certificate
   slurp:
@@ -134,6 +139,8 @@
     sed -n '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/p' /etc/openvpn/pki/issued/client1.crt
   register: client_cert_pem
   changed_when: false
+  args:
+    warn: false
 
 - name: Read client key
   slurp:
