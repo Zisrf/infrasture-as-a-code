@@ -102,7 +102,7 @@
 
 - name: Deploy server configuration
   template:
-    src: ../../templates/server.conf.j2
+    src: server.conf.j2
     dest: /etc/openvpn/server.conf
     mode: '0644'
 
