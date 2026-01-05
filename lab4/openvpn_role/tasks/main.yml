@@ -129,11 +129,6 @@
     src: /etc/openvpn/pki/ca.crt
   register: ca_cert
 
-- name: Read client certificate (full file)
-  slurp:
-    src: /etc/openvpn/pki/issued/client1.crt
-  register: client_cert_full
-
 - name: Extract PEM certificate from client certificate
   shell: |
     sed -n '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/p' /etc/openvpn/pki/issued/client1.crt
